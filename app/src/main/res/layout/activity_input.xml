@@ -6,7 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context=".inputActivity">
+        tools:context=".InputActivity">
 
     <com.google.android.material.appbar.AppBarLayout
             android:layout_height="wrap_content"
@@ -14,14 +14,14 @@
             android:theme="@style/AppTheme.AppBarOverlay">
 
         <androidx.appcompat.widget.Toolbar
-                android:layout_height=""
-                android:layout_width="">
-
-
-        </androidx.appcompat.widget.Toolbar>
-
-
+                android:id="@+id/input_toolbar"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:background="@color/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />　
 
     </com.google.android.material.appbar.AppBarLayout>
+
+    <include layout="@layout/content_input" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
