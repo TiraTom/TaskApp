@@ -1,14 +1,15 @@
 package tiratom.techacademy.taskapp
 
-import android.R
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import io.realm.Realm
 import io.realm.RealmChangeListener
 import io.realm.RealmResults
@@ -21,7 +22,7 @@ const val EXTRA_TASK = "jp.tiratom.techacademy.taskapp.Task"
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mRealm: Realm
-    private val mRealmListner = object: RealmChangeListener<Realm>{
+    private val mRealmListner = object : RealmChangeListener<Realm> {
         override fun onChange(element: Realm) {
             reloadTaskView()
         }
@@ -47,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         mTaskAdapter = TaskAdapter(this@MainActivity)
 
         // ListViewをタップした時の処理
-        listView1.setOnItemClickListener{ parent, _, position, _ ->
+        listView1.setOnItemClickListener { parent, _, position, _ ->
             // 入力・編集する画面に遷移させる
             val task = parent.adapter.getItem(position) as Task
             val intent = Intent(this@MainActivity, InputActivity::class.java)
@@ -67,7 +68,7 @@ class MainActivity : AppCompatActivity() {
             builder.setTitle("削除")
             builder.setMessage("${task.title}を削除しますか？")
 
-            builder.setPositiveButton("OK"){_, _ ->
+            builder.setPositiveButton("OK") { _, _ ->
                 val results = mRealm.where(Task::class.java).equalTo("id", task.id).findAll()
 
                 mRealm.beginTransaction()
@@ -96,27 +97,48 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-
-        // TODO 検索バーの設定
-
-
+        // タスク一覧の読み込み
         reloadTaskView()
+
+
+        // 検索バーの設定
+        val toolbar = findViewById<View>(R.id.main_toolbar) as Toolbar
+        toolbar.title = "TaskApp"
+        toolbar.inflateMenu(R.menu.search)
+        val mSearchView = toolbar.menu.findItem(R.id.menu_search).actionView as SearchView
+        mSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextSubmit(searchWord: String): Boolean {
+                reloadTaskView(searchWord)
+                return true
+            }
+
+        })
+        mSearchView.setOnCloseListener {
+            reloadTaskView()
+            true
+        }
+
     }
 
 
-
-
-    private fun reloadTaskView(){
+    private fun reloadTaskView(searchWord: String = "") {
 
         lateinit var taskRealmResults: RealmResults<Task>
 
-        if (intent.action == Intent.ACTION_SEARCH) {
-            val searchWord = intent.getStringExtra(SearchManager.QUERY)?.also { query ->
-            taskRealmResults = mRealm.where(Task::class.java).equalTo("category", query).findAll().sort("date", Sort.DESCENDING)
-            }
-        } else {
+        if (searchWord.isNullOrEmpty()) {
             // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
-            taskRealmResults = mRealm.where(Task::class.java).findAll().sort("date", Sort.DESCENDING)
+            taskRealmResults = mRealm.where(Task::class.java)
+                .findAll()
+                .sort("date", Sort.DESCENDING)
+        } else {
+            taskRealmResults = mRealm.where(Task::class.java)
+                .equalTo("category", searchWord)
+                .findAll()
+                .sort("date", Sort.DESCENDING)
         }
 
 
